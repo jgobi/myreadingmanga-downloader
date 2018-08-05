@@ -32,13 +32,14 @@ for (let arg of argv._) {
 
 		// Download manga pages
 		console.log(`\nDownloading "${title}"...`);
-		await downloadBatch(`./downloaded/${title}`, images, 'jpg');
+		await downloadBatch(`./downloaded/${title}`, images);
 
 		console.log(`\nDownload complete!`);
 		console.log(`Manga saved in "./downloaded/${title}".`);
 	}
 
 	console.log("\nAll downloads complete! Good reading :)");
+	process.exit(0);
 })();
 
 async function getTitleAndImages (firstURL) {
@@ -49,7 +50,7 @@ async function getTitleAndImages (firstURL) {
 		await download(next, {directory: '.', filename: 'tmp.html'})
 		let dom = parse(`./tmp.html`);
 		if (!title) title = xpath.select("string(//head/title)", dom).split('/').join(' ');
-		let result = searchDom(dom);
+		let result = searchDOM(dom);
 		node = result.iterateNext();
 		while (node) {
 			images.push(node.value);
@@ -62,12 +63,12 @@ async function getTitleAndImages (firstURL) {
 	return { title, images };
 }
 
-function parse(file) {
+function parse (file) {
 	let html = fs.readFileSync(file, { encoding: 'utf8' });
 	return new DOMParser().parseFromString(html);
 }
 
-function searchDom(dom) {
+function searchDOM (dom) {
 	let images;
 	// first attempt
 	images = xpath.evaluate("//div[contains(@class, 'entry-content')]//img/@data-lazy-src", dom, null, xpath.XPathResult.ANY_TYPE, null);
@@ -78,13 +79,13 @@ function searchDom(dom) {
 	return images;
 }
 
-async function downloadBatch (directory, urls, extension) {
+async function downloadBatch (directory, urls) {
 	let total = urls.length;
 	let downloaded = 0;
 	let promises = [];
 	console.log(`${downloaded}/${total}`);
 	for (let i in urls) {
-		promises.push(download(urls[i], {directory, filename: `${i}.${extension}`}).then(_ => console.log(`${++downloaded}/${total}`)));
+		promises.push(download(urls[i], {directory, filename: `${i}.${urls[i].split('.').pop()}`}).then(_ => console.log(`${++downloaded}/${total}`)));
 	}
 	return Promise.all(promises).then(_ => Promise.resolve(downloaded));
 }
