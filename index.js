@@ -23,6 +23,8 @@ for (let arg of argv._) {
 
 
 (async function main () {
+	console.log(`Downloading ${argv._.length} manga${argv._.length > 1 ? 's' : ''}, please wait...\n`);
+
 	for (let url of argv._) {
 		// Download html pages and extract images
 		console.log('Gathering information...');
@@ -35,6 +37,8 @@ for (let arg of argv._) {
 		console.log(`\nDownload complete!`);
 		console.log(`Manga saved in "./downloaded/${title}".`);
 	}
+
+	console.log("\nAll downloads complete! Good reading :)");
 })();
 
 async function getTitleAndImages (firstURL) {
