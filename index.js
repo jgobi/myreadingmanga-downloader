@@ -34,6 +34,9 @@ for (let arg of argv._) {
 		console.log(`\nDownloading "${title}"...`);
 		await downloadBatch(`./downloaded/${title}`, images);
 
+		// Add a README to the destination folder
+		fs.writeFileSync(`./downloaded/${title}/README.txt`, `Doujinshi downloaded from ${url} by the MyReadingManga Downloader.`, { encoding: 'utf8' });
+
 		console.log(`\nDownload complete!`);
 		console.log(`Manga saved in "./downloaded/${title}".`);
 	}
