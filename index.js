@@ -1,6 +1,6 @@
 const df = require('download-file');
 const xpath = require('xpath');
-const dom = require('xmldom').DOMParser;
+const { DOMParser } = require('xmldom');
 const fs = require('fs');
 const isUrl = require('is-url');
 const download = require('util').promisify(df);
@@ -25,27 +25,44 @@ let url = argv._[0]; //"https://myreadingmanga.info/soratobe-enaka-yumeutsutsu-h
 
 
 (async function main () {
-	await download(url, { directory: "./tmp", filename: "0.html" });
+	// Download html pages to extract images
 	console.log('Gathering information...');
-	let dom = parse('./tmp/0.html');
-	let result = searchDom(dom);
-	let title = xpath.select("string(//head/title)", dom).split('/').join(' ');
-	let images = [];
-	node = result.iterateNext();
-	while (node) {
-		images.push(node.value);
-		node = result.iterateNext();
-	}
-	console.log(`Downloading "${title}"...`);
-	let path = await downloadManga(title, images);
-	fs.unlinkSync('./tmp/0.html');
-	console.log(`Download complete!`);
-	console.log(`Manga saved in "${path}".`);
+	let pageQnt = await downloadBatch('./tmp', argv._, 'html');
+
+	// Parse downloades HTML
+	console.log('\nParsing...');
+	let { title, images } = getTitleAndImagesFromPages('./tmp', pageQnt);
+
+	// Download manga pages
+	console.log(`\nDownloading "${title}"...`);
+	await downloadBatch(`./downloaded/${title}`, images, 'jpg');
+
+	console.log(`\nDownload complete!`);
+	console.log(`Manga saved in "./downloaded/${title}".`);
 })();
+
+function getTitleAndImagesFromPages (dir, qnt) {
+	let title;
+	let images = [];
+	for (let i = 0; i < qnt; i++) {
+		let dom = parse(`${dir}/${i}.html`);
+
+		// get title of first html
+		if (i === 0) title = xpath.select("string(//head/title)", dom).split('/').join(' ');
+
+		let result = searchDom(dom);
+		node = result.iterateNext();
+		while (node) {
+			images.push(node.value);
+			node = result.iterateNext();
+		}
+	}
+	return { title, images };
+}
 
 function parse(file) {
 	let html = fs.readFileSync(file, { encoding: 'utf8' });
-	return new dom().parseFromString(html);
+	return new DOMParser().parseFromString(html);
 }
 
 function searchDom(dom) {
@@ -59,14 +76,13 @@ function searchDom(dom) {
 	return images;
 }
 
-async function downloadManga(title, images) {
-	let total = images.length;
+async function downloadBatch (directory, urls, extension) {
+	let total = urls.length;
 	let downloaded = 0;
-	let directory = './downloaded/' + title;
 	let promises = [];
 	console.log(`${downloaded}/${total}`);
-	for (let i in images) {
-		promises.push(download(images[i], {directory , filename: `${i}.jpg`}).then(_ => console.log(`${++downloaded}/${total}`)));
+	for (let i in urls) {
+		promises.push(download(urls[i], {directory, filename: `${i}.${extension}`}).then(_ => console.log(`${++downloaded}/${total}`)));
 	}
-	return Promise.all(promises).then(_ => Promise.resolve(directory));
+	return Promise.all(promises).then(_ => Promise.resolve(downloaded));
 }
