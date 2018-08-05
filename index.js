@@ -3,6 +3,7 @@ const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 const fs = require('fs');
 const isUrl = require('is-url');
+const download = require('util').promisify(df);
 
 
 let argv = require('minimist')(process.argv.slice(2));
@@ -22,7 +23,25 @@ for (let arg of argv._) {
 
 let url = argv._[0]; //"https://myreadingmanga.info/soratobe-enaka-yumeutsutsu-hero-academia-dj-eng/";
 
-const download = require('util').promisify(df);
+
+(async function main () {
+	await download(url, { directory: "./tmp", filename: "0.html" });
+	console.log('Gathering information...');
+	let dom = parse('./tmp/0.html');
+	let result = searchDom(dom);
+	let title = xpath.select("string(//head/title)", dom).split('/').join(' ');
+	let images = [];
+	node = result.iterateNext();
+	while (node) {
+		images.push(node.value);
+		node = result.iterateNext();
+	}
+	console.log(`Downloading "${title}"...`);
+	let path = await downloadManga(title, images);
+	fs.unlinkSync('./tmp/0.html');
+	console.log(`Download complete!`);
+	console.log(`Manga saved in "${path}".`);
+})();
 
 function parse(file) {
 	let html = fs.readFileSync(file, { encoding: 'utf8' });
@@ -51,23 +70,3 @@ async function downloadManga(title, images) {
 	}
 	return Promise.all(promises).then(_ => Promise.resolve(directory));
 }
-
-
-(async function () {
-	await download(url, { directory: "./tmp", filename: "0.html" });
-	console.log('Gathering information...');
-	let dom = parse('./tmp/0.html');
-	let result = searchDom(dom);
-	let title = xpath.select("string(//head/title)", dom).split('/').join(' ');
-	let images = [];
-	node = result.iterateNext();
-	while (node) {
-		images.push(node.value);
-		node = result.iterateNext();
-	}
-	console.log(`Downloading "${title}"...`);
-	let path = await downloadManga(title, images);
-	fs.unlinkSync('./tmp/0.html');
-	console.log(`Download complete!`);
-	console.log(`Manga saved in "${path}".`);
-})();
