@@ -7,12 +7,17 @@ const isUrl = require('is-url');
 
 let argv = require('minimist')(process.argv.slice(2));
 
-if (argv._.length !== 1) {
-	console.log(`You need to pass an MyReadingManga.info URL as argument and only this.`);
+if (argv._.length < 1) {
+	console.log('You need to pass at least one MyReadingManga.info URL as argument.',
+	'The order of the arguments will determine the order of the pages.');
 	process.exit(1);
-} else if (!isUrl(argv._[0]) || argv._[0].indexOf('myreadingmanga.info') === -1) {
-	console.log(`The argument must be a valid MyReadingManga.info URL.`);
-	process.exit(2);
+}
+
+for (let arg of argv._) {
+	if (!isUrl(arg) || arg.indexOf('myreadingmanga.info') === -1) {
+		console.log('All arguments must be a valid MyReadingManga.info URL.');
+		process.exit(2);
+	}
 }
 
 let url = argv._[0]; //"https://myreadingmanga.info/soratobe-enaka-yumeutsutsu-hero-academia-dj-eng/";
@@ -41,11 +46,12 @@ async function downloadManga(title, images) {
 	let directory = './downloaded/' + title;
 	let promises = [];
 	console.log(`${downloaded}/${total}`);
-	for (i in images) {
+	for (let i in images) {
 		promises.push(download(images[i], {directory , filename: `${i}.jpg`}).then(_ => console.log(`${++downloaded}/${total}`)));
 	}
 	return Promise.all(promises).then(_ => Promise.resolve(directory));
 }
+
 
 (async function () {
 	await download(url, { directory: "./tmp", filename: "0.html" });
@@ -54,12 +60,12 @@ async function downloadManga(title, images) {
 	let result = searchDom(dom);
 	let title = xpath.select("string(//head/title)", dom).split('/').join(' ');
 	let images = [];
-	console.log(`Downloading "${title}"...`);
 	node = result.iterateNext();
 	while (node) {
 		images.push(node.value);
 		node = result.iterateNext();
 	}
+	console.log(`Downloading "${title}"...`);
 	let path = await downloadManga(title, images);
 	fs.unlinkSync('./tmp/0.html');
 	console.log(`Download complete!`);
