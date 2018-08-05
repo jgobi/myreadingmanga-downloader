@@ -9,8 +9,8 @@ const download = require('util').promisify(df);
 let argv = require('minimist')(process.argv.slice(2));
 
 if (argv._.length < 1) {
-	console.log('You need to pass at least one MyReadingManga.info URL as argument.',
-	'The order of the arguments will determine the order of the pages.');
+	console.log('You need to pass at least one MyReadingManga.info URL as argument. If the manga contains more than one page, this script will automatically handle this and download these pages in order.');
+	console.log('You can pass how much mangas as you want, they will be downloades sequentially.');
 	process.exit(1);
 }
 
@@ -21,42 +21,40 @@ for (let arg of argv._) {
 	}
 }
 
-let url = argv._[0]; //"https://myreadingmanga.info/soratobe-enaka-yumeutsutsu-hero-academia-dj-eng/";
-
 
 (async function main () {
-	// Download html pages to extract images
-	console.log('Gathering information...');
-	let pageQnt = await downloadBatch('./tmp', argv._, 'html');
+	for (let url of argv._) {
+		// Download html pages and extract images
+		console.log('Gathering information...');
+		let { title, images } = await getTitleAndImages(url);
 
-	// Parse downloades HTML
-	console.log('\nParsing...');
-	let { title, images } = getTitleAndImagesFromPages('./tmp', pageQnt);
+		// Download manga pages
+		console.log(`\nDownloading "${title}"...`);
+		await downloadBatch(`./downloaded/${title}`, images, 'jpg');
 
-	// Download manga pages
-	console.log(`\nDownloading "${title}"...`);
-	await downloadBatch(`./downloaded/${title}`, images, 'jpg');
-
-	console.log(`\nDownload complete!`);
-	console.log(`Manga saved in "./downloaded/${title}".`);
+		console.log(`\nDownload complete!`);
+		console.log(`Manga saved in "./downloaded/${title}".`);
+	}
 })();
 
-function getTitleAndImagesFromPages (dir, qnt) {
+async function getTitleAndImages (firstURL) {
 	let title;
+	let next = firstURL;
 	let images = [];
-	for (let i = 0; i < qnt; i++) {
-		let dom = parse(`${dir}/${i}.html`);
-
-		// get title of first html
-		if (i === 0) title = xpath.select("string(//head/title)", dom).split('/').join(' ');
-
+	do {
+		await download(next, {directory: '.', filename: 'tmp.html'})
+		let dom = parse(`./tmp.html`);
+		if (!title) title = xpath.select("string(//head/title)", dom).split('/').join(' ');
 		let result = searchDom(dom);
 		node = result.iterateNext();
 		while (node) {
 			images.push(node.value);
 			node = result.iterateNext();
 		}
-	}
+		next = xpath.select('string(//head/link[contains(@rel, "next")]/@href)', dom);
+	} while (next);
+
+	fs.unlinkSync('./tmp.html');
 	return { title, images };
 }
 
