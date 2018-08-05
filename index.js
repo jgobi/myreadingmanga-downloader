@@ -50,7 +50,7 @@ async function getTitleAndImages (firstURL) {
 	let next = firstURL;
 	let images = [];
 	do {
-		await download(next, {directory: '.', filename: 'tmp.html'})
+		await tryUntilResolve(this, download, next, {directory: '.', filename: 'tmp.html'});
 		let dom = parse(`./tmp.html`);
 		if (!title) title = xpath.select("string(//head/title)", dom).split('/').join(' ');
 		let result = searchDOM(dom);
@@ -88,7 +88,18 @@ async function downloadBatch (directory, urls) {
 	let promises = [];
 	console.log(`${downloaded}/${total}`);
 	for (let i in urls) {
-		promises.push(download(urls[i], {directory, filename: `${i}.${urls[i].split('.').pop()}`}).then(_ => console.log(`${++downloaded}/${total}`)));
+		promises.push(tryUntilResolve(this, download, urls[i], {directory, filename: `${i}.${urls[i].split('.').pop()}`}).then(_ => console.log(`${++downloaded}/${total}`)));
 	}
 	return Promise.all(promises).then(_ => Promise.resolve(downloaded));
+}
+
+function tryUntilResolve (thisArg, fn, ...args) {
+	return new Promise(resolve => {
+		(function trying () {
+			fn.apply(thisArg, args).then(resolve, _ => {
+				console.log('Network error, retrying...');
+				setTimeout(trying, 500);
+			});
+		})();
+	});
 }
