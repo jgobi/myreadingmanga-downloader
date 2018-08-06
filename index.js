@@ -3,6 +3,8 @@ const xpath = require('xpath');
 const { DOMParser } = require('xmldom');
 const fs = require('fs');
 const isUrl = require('is-url');
+const mkdirp = require('mkdirp');
+
 const download = require('util').promisify(df);
 
 
@@ -35,7 +37,9 @@ for (let arg of argv._) {
 		await downloadBatch(`./downloaded/${title}`, images);
 
 		// Add a README to the destination folder
-		fs.writeFileSync(`./downloaded/${title}/README.txt`, `Doujinshi downloaded from ${url} by the MyReadingManga Downloader.`, { encoding: 'utf8' });
+		let dir = `./downloaded/${title}`;
+		mkdirp.sync(dir);
+		fs.writeFileSync(`${dir}/README.txt`, `Doujinshi downloaded from ${url} by the MyReadingManga Downloader.\n`, { encoding: 'utf8' });
 
 		console.log(`\nDownload complete!`);
 		console.log(`Manga saved in "./downloaded/${title}".`);
@@ -78,7 +82,8 @@ function searchDOM (dom) {
 	if (images.nodes.length === 0) // second attempt
 		images = xpath.evaluate("//div[contains(@class, 'entry-content')]//img/@data-src", dom, null, xpath.XPathResult.ANY_TYPE, null);
 	if (images.nodes.length === 0) // all failed
-		throw new Error('Can\'t find manga pages in the specified URL :(');
+		console.error('\nCan\'t find manga pages in the specified URL :(\n');
+
 	return images;
 }
 
@@ -103,3 +108,4 @@ function tryUntilResolve (thisArg, fn, ...args) {
 		})();
 	});
 }
+
