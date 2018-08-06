@@ -87,7 +87,7 @@ function searchDOM (dom) {
 	return images;
 }
 
-async function downloadBatch (directory, urls) {
+function downloadBatch (directory, urls) {
 	let total = urls.length;
 	let downloaded = 0;
 	let promises = [];
