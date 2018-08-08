@@ -1,6 +1,6 @@
 {
   "name": "myreadingmanga-downloader",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "An utility to download doujinshis from MyReadingManga",
   "main": "index.js",
   "bin": {
