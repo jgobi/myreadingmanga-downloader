@@ -2,7 +2,9 @@
 
 Utility to download doujinshis from the website MyReadingManga.info.
 
-## Installation:
+# How to use (method 1):
+
+## Installation
 
 1. Install NodeJS (tested in version 8) and Yarn
 1. Clone this repository
@@ -17,3 +19,19 @@ The doujinshis will be downloaded to a folder with it's title. This folder will 
 ### Example
 
 `node . https://myreadingmanga.info/soratobe-enaka-yumeutsutsu-hero-academia-dj-eng/`
+
+# How to use (method 2)
+
+## Installation
+
+`$ npm i -g https://github.com/jgobi/myreadingmanga-downloader.git`
+
+## Usage
+
+Run `myreadingmanga-downloader <urls>`, where `<urls>` should be replaced by the space-separated list of the URL of the desired doujinshis from MyReadingManga.info.
+
+A "downloaded" folder will be created in the current directory and the doujinshis will be downloaded to a subfolder with it's title.
+
+### Example
+
+`$ myreadingmanga-downloader https://myreadingmanga.info/soratobe-enaka-yumeutsutsu-hero-academia-dj-eng/`
