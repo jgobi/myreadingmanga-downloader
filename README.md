@@ -14,7 +14,7 @@ Utility to download doujinshis from the website MyReadingManga.info.
 
 From the root folder, run `node . <urls>`, where `<urls>` should be replaced by the space-separated list of the URL of the desired doujinshis from MyReadingManga.info.
 
-The doujinshis will be downloaded to a folder with it's title. This folder will be inside of the folder `downloaded` (that will be created in the root of the repository).
+The doujinshis will be downloaded to a folder with it's title. This folder will be inside of the folder `mrm-downloads` (that will be created in the root of the repository).
 
 ### Example
 
@@ -30,7 +30,7 @@ The doujinshis will be downloaded to a folder with it's title. This folder will 
 
 Run `myreadingmanga-downloader <urls>`, where `<urls>` should be replaced by the space-separated list of the URL of the desired doujinshis from MyReadingManga.info.
 
-A "downloaded" folder will be created in the current directory and the doujinshis will be downloaded to a subfolder with it's title.
+A `mrm-downloads` folder will be created in the current directory and the doujinshis will be downloaded to a subfolder with it's title.
 
 ### Example
 

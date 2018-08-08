@@ -6,7 +6,7 @@ const isUrl = require('is-url');
 const mkdirp = require('mkdirp');
 
 const download = require('util').promisify(df);
-
+const basePath = './mrm-downloads';
 
 let argv = require('minimist')(process.argv.slice(2));
 
@@ -34,15 +34,15 @@ for (let arg of argv._) {
 
 		// Download manga pages
 		console.log(`\nDownloading "${title}"...`);
-		await downloadBatch(`./downloaded/${title}`, images);
+		await downloadBatch(`${basePath}/${title}`, images);
 
 		// Add a README to the destination folder
-		let dir = `./downloaded/${title}`;
+		let dir = `${basePath}/${title}`;
 		mkdirp.sync(dir);
 		fs.writeFileSync(`${dir}/README.txt`, `Doujinshi downloaded from ${url} by the MyReadingManga Downloader.\n`, { encoding: 'utf8' });
 
 		console.log(`\nDownload complete!`);
-		console.log(`Manga saved in "./downloaded/${title}".`);
+		console.log(`Manga saved in "${basePath}/${title}".`);
 	}
 
 	console.log("\nAll downloads complete! Good reading :)");
@@ -54,8 +54,8 @@ async function getTitleAndImages (firstURL) {
 	let next = firstURL;
 	let images = [];
 	do {
-		await tryUntilResolve(this, download, next, {directory: '.', filename: 'tmp.html'});
-		let dom = parse(`./tmp.html`);
+		await tryUntilResolve(this, download, next, {directory: basePath, filename: 'tmp.html'});
+		let dom = parse(`${basePath}/tmp.html`);
 		if (!title) title = xpath.select("string(//head/title)", dom).split('/').join(' ');
 		let result = searchDOM(dom);
 		node = result.iterateNext();
@@ -66,7 +66,7 @@ async function getTitleAndImages (firstURL) {
 		next = xpath.select('string(//head/link[contains(@rel, "next")]/@href)', dom);
 	} while (next);
 
-	fs.unlinkSync('./tmp.html');
+	fs.unlinkSync(`${basePath}/tmp.html`);
 	return { title, images };
 }
 
