@@ -78,8 +78,12 @@ function parse (file) {
 function searchDOM (dom) {
 	let images;
 	// first attempt
-	images = xpath.evaluate("//div[contains(@class, 'entry-content')]//img/@data-lazy-src", dom, null, xpath.XPathResult.ANY_TYPE, null);
+	images = xpath.evaluate("//div[contains(@class, 'entry-content')]/div/img/@data-lazy-src", dom, null, xpath.XPathResult.ANY_TYPE, null);
 	if (images.nodes.length === 0) // second attempt
+		images = xpath.evaluate("//div[contains(@class, 'entry-content')]/div/img/@data-src", dom, null, xpath.XPathResult.ANY_TYPE, null);
+	if (images.nodes.length === 0) // third attempt
+		images = xpath.evaluate("//div[contains(@class, 'entry-content')]//img/@data-lazy-src", dom, null, xpath.XPathResult.ANY_TYPE, null);
+	if (images.nodes.length === 0) // forth attempt
 		images = xpath.evaluate("//div[contains(@class, 'entry-content')]//img/@data-src", dom, null, xpath.XPathResult.ANY_TYPE, null);
 	if (images.nodes.length === 0) // all failed
 		console.error('\nCan\'t find manga pages in the specified URL :(\n');
