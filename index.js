@@ -1,12 +1,24 @@
-const df = require('download-file');
+const cloudscraper = require('cloudscraper');
 const xpath = require('xpath');
 const { DOMParser } = require('xmldom');
 const fs = require('fs');
 const isUrl = require('is-url');
 const mkdirp = require('mkdirp');
-
-const download = require('util').promisify(df);
+const path = require('path');
 const basePath = './mrm-downloads';
+
+
+function download (url, {directory = '.', filename = 'download'} = {}) {
+	return new Promise((resolve, reject) => {
+		mkdirp.sync(directory);
+		return cloudscraper.get({uri: url, encoding: null}).then(bufferAsBody => {
+			fs.writeFile(path.join(directory, filename), bufferAsBody, error => {
+				if (error) reject(error);
+				else resolve();
+			})
+		});
+	});
+}
 
 let argv = require('minimist')(process.argv.slice(2));
 
