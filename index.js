@@ -16,6 +16,8 @@ function download (url, {directory = '.', filename = 'download'} = {}) {
 				if (error) reject(error);
 				else resolve();
 			})
+		}).catch(error => {
+			reject(error);
 		});
 	});
 }
