@@ -7,7 +7,7 @@
     "myreadingmanga-downloader": "./bin.js"
   },
   "dependencies": {
-    "cloudscraper": "^4.5.0",
+    "cloudscraper": "https://github.com/bestplay9384/cloudscraper",
     "is-url": "^1.2.4",
     "minimist": "^1.2.3",
     "mkdirp": "^0.5.1",
